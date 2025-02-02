@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4 text-center">Admin Dashboard - Step 1: Select Exam</h1>
+
+    <div class="list-group">
+        {% for exam in exams %}
+            <a href="{% url 'admin_dashboard_step2' exam.id %}" class="list-group-item list-group-item-action">
+                {{ exam.title }}
+            </a>
+        {% empty %}
+            <p class="text-danger">No exams found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

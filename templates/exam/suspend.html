@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="text-center mt-5">
+    <h1>شما به دلیل تخلف مکرر به مدت ۱ دقیقه محروم هستید.</h1>
+    <p>لطفاً منتظر بمانید. آزمون شما پس از پایان زمان محرومیت به‌طور خودکار شروع خواهد شد.</p>
+    <p>زمان باقی‌مانده: <span id="timer">1:00</span></p>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+    
+<script src="{% static 'exam/suspend.js' %}"></script>    
+
+{% endblock %}

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Scanner</title>
+    <meta name="scan-face-url" content="{% url 'face_scanner:scan_face' %}">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        #video, #canvas {
+            width: 640px;
+            height: 480px;
+            margin-bottom: 20px;
+            background-color: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        #canvas {
+            display: none;
+        }
+        #status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        #startScan {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #startScan:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            background-color: #ffe6e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>اسکن چهره</h1>
+        <video id="video" autoplay></video>
+        <canvas id="canvas"></canvas>
+        <div id="status"></div>
+        <button id="startScan">شروع اسکن</button>
+    </div>
+
+    <script>
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let startButton = document.getElementById('startScan');
+        let statusDiv = document.getElementById('status');
+        let isScanning = false;
+        let frameCount = 0;
+        const REQUIRED_FRAMES = 30;
+        const scanFaceUrl = document.querySelector('meta[name="scan-face-url"]').content;
+
+        canvas.width = 640;
+        canvas.height = 480;
+
+        async function setupCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                statusDiv.innerHTML = '<div class="error">خطا در دسترسی به دوربین</div>';
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function sendFrameToServer(frameData) {
+            try {
+                const response = await fetch(scanFaceUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        frame: frameData
+                    })
+                });
+                
+                const data = await response.json();
+                if (!data.success && data.error) {
+                    statusDiv.innerHTML = `<div class="error">${data.error}</div>`;
+                }
+                return data;
+            } catch (err) {
+                console.error('Error sending frame:', err);
+                statusDiv.innerHTML = '<div class="error">خطا در ارسال تصویر</div>';
+                return null;
+            }
+        }
+
+        async function processFrame() {
+            if (!isScanning || frameCount >= REQUIRED_FRAMES) return;
+
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const frameData = canvas.toDataURL('image/jpeg', 0.8);
+            
+            const result = await sendFrameToServer(frameData);
+            if (result && result.success) {
+                frameCount++;
+                statusDiv.textContent = `پیشرفت: ${Math.round((frameCount/REQUIRED_FRAMES) * 100)}%`;
+                
+                if (frameCount >= REQUIRED_FRAMES) {
+                    isScanning = false;
+                    statusDiv.textContent = 'اسکن با موفقیت انجام شد!';
+                    startButton.textContent = 'اسکن تکمیل شد';
+                    startButton.disabled = true;
+                    
+                    setTimeout(() => {
+                        window.location.href = result.redirect_url;
+                    }, 1000);
+                }
+            }
+
+            if (isScanning) {
+                requestAnimationFrame(processFrame);
+            }
+        }
+
+        startButton.addEventListener('click', () => {
+            if (!isScanning) {
+                isScanning = true;
+                frameCount = 0;
+                processFrame();
+                startButton.textContent = 'توقف اسکن';
+                statusDiv.textContent = 'در حال اسکن...';
+            } else {
+                isScanning = false;
+                startButton.textContent = 'شروع اسکن';
+                statusDiv.textContent = 'اسکن متوقف شد';
+            }
+        });
+
+        setupCamera();
+    </script>
+</body>
+</html>

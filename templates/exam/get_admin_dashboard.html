@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <head>
+        <title>All Exams</title>
+        <style>
+            .exam-list {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .exam-item {
+                background-color: #fff;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                transition: background-color 0.3s;
+            }
+
+            .exam-item:hover {
+                background-color: #f0f0f0;
+            }
+
+            .exam-item a {
+                text-decoration: none;
+                color: #333;
+                font-size: 18px;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+    <h1>Exams</h1>
+    <div class="exam-list">
+        {% for exam in exams %}
+            <a href="{% url 'exam_view' exam.id %}">
+                <div class="exam-item">
+                    {{ exam.title }}
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+
+{% endblock %}

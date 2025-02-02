@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Background Face Verification</title>
+</head>
+<body>
+  <script>
+    // ایجاد یک عنصر ویدیو به صورت نامرئی
+    const video = document.createElement('video');
+    video.style.display = 'none';
+    document.body.appendChild(video);
+
+    // ایجاد یک عنصر canvas به صورت نامرئی
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    // دسترسی به دوربین کاربر
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(function (stream) {
+        video.srcObject = stream;
+        video.play();
+      })
+      .catch(function (err) {
+        console.error("Error accessing camera: ", err);
+      });
+
+    // تابع برای گرفتن عکس و ارسال آن
+    function captureAndSend() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = canvas.toDataURL('image/jpeg');
+
+      fetch('/face-scanner/face-match/', {
+        method: 'POST',
+        body: imageData, // ارسال داده به صورت رشته base64
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/octet-stream', // نوع محتوا
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Response received:', data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+
+    // اجرای دوره‌ای ارسال درخواست fetch
+    setInterval(captureAndSend, 10000); // هر 10 ثانیه
+  </script>
+</body>
+</html>

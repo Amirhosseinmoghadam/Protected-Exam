@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <h1>{{ exam.title }}: Answer the Questions</h1>
+    <h3 id="timer"></h3>
+
+    <form id="examForm" method="post">
+        {% csrf_token %}
+
+        {% for field in form %}
+            <b>
+                <hr>
+            </b>
+            <div class="mb-3">
+                <label class="form-label">{{ forloop.counter }}. {{ field.label }}</label>
+                {{ field }} {% if field.errors %}
+                    <div class="text-danger">
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">Submit Answers</button>
+    </form>
+{% endblock %}
+
+
+
+{% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        // Get the remaining time (in seconds) from the Django context
+        let remainingTime = {{ remaining_time }};
+
+        // Function to update the countdown timer display
+        function updateTimerDisplay() {
+            // Calculate hours, minutes, and seconds
+            let hours = Math.floor(remainingTime / 3600);
+            let minutes = Math.floor((remainingTime % 3600) / 60);
+            let seconds = remainingTime % 60;
+
+            let timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            document.getElementById('timer').innerText = timeString;
+
+            // If time is zero or less, submit the form
+            if (remainingTime <= 0) {
+                document.getElementById('examForm').submit();
+            }
+
+            remainingTime--;
+        }
+
+        let timerInterval = setInterval(updateTimerDisplay, 1000);
+
+        // Optionally, stop the interval if the form is already submitted
+        document.getElementById('examForm').addEventListener('submit', function () {
+            clearInterval(timerInterval);
+        });
+    </script>
+
+
+    <script>
+        const examId = {{ exam.id }};
+        window.examId = examId;
+        console.log("Exam ID:", window.examId); // بررسی مقدار examId
+    </script>
+
+    <script src="{% static 'exam/tab-change.js' %}"></script>
+    {% if exam.is_voice_record_needed %}
+        <script src="{% static 'exam/audio-record.js' %}"></script>
+    {% endif %}
+    
+    {% if exam.is_face_scan_needed %}
+        <script src="{% static 'face_scanner/face_scan.js' %}"></script>
+    {% endif %}
+    
+{% endblock %}

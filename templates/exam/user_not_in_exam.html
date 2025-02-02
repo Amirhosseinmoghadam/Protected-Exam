@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container">
+        <h1 class="mb-4 text-center text-danger">خطا</h1>
+        <p class="text-center">کاربر {{ user.username }} در آزمون {{ exam.title }} شرکت نکرده است.</p>
+    </div>
+{% endblock %}

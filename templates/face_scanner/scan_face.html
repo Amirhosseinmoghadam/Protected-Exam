@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Scan Your Face</h2>
+    <div class="video-container">
+        <video id="video" width="640" height="480" autoplay></video>
+        <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+    </div>
+    <button id="snap" class="btn btn-primary">Scan</button>
+    <div id="message"></div>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const snap = document.getElementById('snap');
+    const message = document.getElementById('message');
+
+    // Check if camera access is available
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // Access the camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(function(error) {
+                console.error('Error accessing the camera:', error);
+                message.textContent = 'Unable to access the camera. Please ensure camera permissions are granted in your browser settings.';
+            });
+    } else {
+        console.error('Camera access not supported');
+        message.textContent = 'Camera access is not supported in your browser.';
+    }
+
+    // Trigger photo take
+    snap.addEventListener("click", function() {
+        context.drawImage(video, 0, 0, 640, 480);
+        const imageData = canvas.toDataURL('image/jpeg');
+
+        fetch("{% url 'start_scan' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: 'image=' + encodeURIComponent(imageData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Server response:', data);
+            message.textContent = data.message || data.error;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            message.textContent = 'An error occurred. Please try again.';
+        });
+    });
+
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

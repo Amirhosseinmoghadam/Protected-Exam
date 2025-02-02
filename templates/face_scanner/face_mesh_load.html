@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block header %}
+    <title>Face Scanner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        video {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        #messages {
+            margin-top: 20px;
+            font-size: 18px;
+            color: green;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h1>Face Scanner</h1>
+    <div class="video-container">
+        <video id="webcam" autoplay playsinline class="img-fluid"></video>
+        
+        
+        <div id="messages">Allow webcam access to start recording.</div>
+    </div>
+    <button id="capture" class="btn btn-primary mt-3">Start Recording</button>
+{% endblock %}
+
+{% block script %}
+    
+    <script src="{% static 'face_scanner/scan.js' %}"></script>
+    
+{% endblock %}

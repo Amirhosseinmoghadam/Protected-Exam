@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    <title>Face Scanner</title>
+    <link rel="stylesheet" href="{% static 'css/face_scanner.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="text-center">Face Scanner</h1>
+            <div class="video-container">
+                <video id="webcam" autoplay playsinline class="img-fluid"></video>
+            </div>
+            <button id="capture" class="btn btn-primary mt-3">Start Recording</button>
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg mt-3">
+            <div id="messages" class="mt-3">Allow webcam access to start recording.</div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        const video = document.getElementById('webcam');
+        const captureButton = document.getElementById('capture');
+        const messages = document.getElementById('messages');
+
+        let mediaRecorder;
+        let recordedBlobs;
+
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(stream => {
+                video.srcObject = stream;
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = event => {
+                    if (event.data && event.data.size > 0) {
+                        recordedBlobs.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const videoBlob = new Blob(recordedBlobs, { type: 'video/webm' });
+                    const formData = new FormData();
+                    formData.append('video', videoBlob, 'recorded_video.webm');
+
+                    messages.innerText = "Sending video...";
+
+                    fetch('/face-scanner/scan-face/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            messages.innerText = "Error: " + data.error;
+                            messages.style.color = "red";
+                        } else {
+                            messages.innerText = "Face scanned successfully!";
+                            messages.style.color = "green";
+                        }
+                    })
+                    .catch(err => {
+                        messages.innerText = "Error: " + err.message;
+                        messages.style.color = "red";
+                    })
+                    .finally(() => {
+                        captureButton.disabled = false;
+                        captureButton.innerText = "Start Recording";
+                    });
+                };
+            })
+            .catch(err => {
+                messages.innerText = "Error accessing webcam: " + err.message;
+                messages.style.color = "red";
+            });
+
+        captureButton.addEventListener('click', () => {
+            if (mediaRecorder.state === 'inactive') {
+                recordedBlobs = [];
+                mediaRecorder.start();
+                captureButton.innerText = "Stop Recording";
+                messages.innerText = "Recording... Please slowly turn your head.";
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                    messages.innerText = "Processing video...";
+                }, 5000); // Stop recording after 5 seconds
+            } else {
+                mediaRecorder.stop();
+                messages.innerText = "Processing video...";
+            }
+            captureButton.disabled = true;
+        });
+    </script>
+{% endblock %}

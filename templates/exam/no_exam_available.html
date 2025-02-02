@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+    <h1>در حال حاضر امتحانی در دسترس نیست (امتحانی وجود ندارد / شما قبلا در این آزمون شرکت کرده اید)</h1>
+    <p>{{ message }}</p>
+    <a class="btn btn-primary btn-lg mt-3" href="{% url 'home' %}">بازگشت </a>
+{% endblock %}

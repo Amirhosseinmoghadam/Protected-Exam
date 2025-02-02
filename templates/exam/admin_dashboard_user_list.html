@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4 text-center">Admin Dashboard - Step 2: Participants for {{ exam.title }}</h1>
+
+    <div class="list-group">
+        {% for participant in participants %}
+            <a href="{% url 'admin_dashboard_step3' exam.id participant.id %}" class="d-flex list-group-item list-group-item-action">
+            
+                {{ participant.username }}                 <div style="width:50px; height: 1px">     </div>               {{ participant.national_code }} 
+            </a>
+        {% empty %}
+            <p class="text-danger">No participants found for this exam.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

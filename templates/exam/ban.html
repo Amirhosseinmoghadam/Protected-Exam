@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+    <!-- Main Card -->
+    <div class="card shadow-lg w-100" style="max-width: 28rem;">
+        <div class="card-body text-center">
+            <!-- Icon Section -->
+            <div class="mb-4">
+                <svg class="text-danger" width="64" height="64" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke="currentColor" />
+                </svg>
+            </div>
+
+            <!-- Title Section -->
+            <h5 class="card-title fw-bold text-dark">محرومیت دائم از آزمون</h5>
+
+            <!-- Message Section -->
+            <p class="card-text text-muted mb-4">
+                متأسفانه به دلیل تخلف مکرر در خروج از صفحه آزمون، دسترسی شما به این آزمون به طور دائم مسدود شده است.
+            </p>
+
+            <!-- Warning Section -->
+            <div class="alert alert-danger text-start">
+                لطفاً با پشتیبانی تماس بگیرید یا به صفحه اصلی بازگردید.
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between">
+                <a href="/" class="btn btn-primary">بازگشت به صفحه اصلی</a>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

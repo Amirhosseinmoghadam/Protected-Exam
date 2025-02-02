@@ -1,0 +1,31 @@
+{# _______________________________________________________________________ #}
+{% extends "base.html" %}
+{% load form_tags %}
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px;">
+        <h3 class="card-title text-center text-primary mb-3">Welcome Back!</h3>
+        <p class="text-center text-muted mb-4">Please log in to your account</p>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                {{ form.username|add_class:"form-control" }}
+                {{ form.username.errors }}
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                {{ form.password|add_class:"form-control" }}
+                {{ form.password.errors }}
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+        <div class="text-center mt-3">
+            <a href="{% url 'password_reset' %}" class="text-decoration-none">Forgot password?</a>
+        </div>
+        <hr class="my-4">
+        <p class="text-center">Don't have an account? <a href="{% url 'register' %}" class="text-primary text-decoration-none">Register</a></p>
+    </div>
+</div>
+{% endblock %}

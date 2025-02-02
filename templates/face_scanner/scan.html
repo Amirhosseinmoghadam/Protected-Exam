@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Face Scanner</h1>
+<p>Please ensure your face is visible in the camera frame.</p>
+
+<!-- Camera display section -->
+<div id="video-container">
+    <video id="video" autoplay></video>
+</div>
+
+<!-- Start scan button -->
+<button id="start-scan" class="btn btn-primary">Start Scanning</button>
+
+<!-- Status message -->
+<p id="status-message"></p>
+
+<script>
+    const video = document.getElementById("video");
+    const startScanButton = document.getElementById("start-scan");
+    const statusMessage = document.getElementById("status-message");
+
+    // Camera access
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+            video.srcObject = stream;
+        })
+        .catch((err) => {
+            console.error("Cannot access webcam:", err);
+            statusMessage.textContent = "Error: Cannot access webcam.";
+        });
+
+    // Click on the Start Scan button.
+    startScanButton.addEventListener("click", () => {
+        statusMessage.textContent = "Scanning in progress...";
+        startScanButton.disabled = true;
+
+        //Send a request to the server to start scanning
+        fetch("{% url 'start_scan' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}", // Sending CSRF token for security
+            },
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error("Scanning failed.");
+                }
+            })
+            .then((data) => {
+                if (data.success) {
+                    statusMessage.textContent = "Scanning complete. Redirecting to quiz...";
+                    window.location.href = "{% url 'quiz_page' %}";
+                } else {
+                    statusMessage.textContent = "Error during scanning: " + data.error;
+                }
+            })
+            .catch((err) => {
+                console.error(err);
+                statusMessage.textContent = "An error occurred during scanning.";
+            })
+            .finally(() => {
+                startScanButton.disabled = false;
+            });
+    });
+</script>
+{% endblock %}

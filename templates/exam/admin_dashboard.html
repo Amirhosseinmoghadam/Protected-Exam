@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load exam_extras %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4 text-center">Admin Dashboard</h1>
+
+    {% for exam_id, data in users_data.items %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h5">Exam: {{ exams|get_item:exam_id }}</h2>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-light">
+                    <tr>
+                        <th>نام کاربر</th>
+                        <th>وضعیت تشخیص چهره</th>
+                        <th>تعداد دفعات خروج موس</th>
+                        <th>تعداد دفعات تعویض تب</th>
+                        <th>مجموع زمان‌ خروج موس</th>
+                        <th>مجموع زمان‌ تعویض تب</th>
+                        <th>صداهای ضبط شده</th>
+                        <th>تصاویر تشخیص ناموفق</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for user_data in data %}
+                        <tr>
+                            <td>{{ user_data.user.username }}</td>
+                            <td>{{ user_data.face_status }}</td>
+                            <td>
+                                {# --- تغییرات جدید --- #}
+                                <span>{{ user_data.mouse_leave_count }}</span>
+                                {# --- پایان تغییرات جدید --- #}
+                            </td>
+                            <td>
+                                 {# --- تغییرات جدید --- #}
+                                <span>{{ user_data.tab_change_count }}</span>
+                                {# --- پایان تغییرات جدید --- #}
+                            </td>
+                            <td>
+                                {% if user_data.total_time_away_mouse > 0 %}
+                                    <span>{{ user_data.total_time_away_mouse|floatformat:0 }} ثانیه</span>
+                                {% else %}
+                                    <span class="text-danger">زمانی ثبت نشده است</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user_data.total_time_away_tab > 0 %}
+                                    <span>{{ user_data.total_time_away_tab|floatformat:0 }} ثانیه</span>
+                                {% else %}
+                                    <span class="text-danger">زمانی ثبت نشده است</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <ul class="list-unstyled">
+                                    {% for audio in user_data.audio_recordings %}
+                                        <li class="mb-2">
+                                            <audio controls class="w-100">
+                                                <source src="{{ audio.file.url }}" type="audio/wav">
+                                                Your browser does not support the audio element.
+                                            </audio>
+                                            <small class="text-muted d-block">{{ audio.created_at }}</small>
+                                            <span>{{ audio.text|default_if_none:"" }}</span>
+                                            <hr>
+                                        </li>
+                                    {% empty %}
+                                        <li class="text-danger">صدایی یافت نشد</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for face in user_data.unrecognized_faces %}
+                                        <a href="{{ face.image.url }}" target="_blank">
+                                            <img src="{{ face.image.url }}" alt="Unrecognized Face" class="img-thumbnail" width="100">
+                                            <small class="text-muted d-block">{{ face.created_at }}</small>
+                                        </a>
+                                    {% empty %}
+                                        <p class="text-danger">تصویری یافت نشد</p>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-danger">هیچ کاربری با شرایط مورد نظر یافت نشد</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
